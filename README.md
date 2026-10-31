@@ -101,7 +101,7 @@ I pulled the latest 50 emails from my own inbox (a separate read-only token, `GM
 | Alerts caught | 12 of 12 (recall 100 %, target 90 %) |
 | False alerts | 1 (target at most 5) |
 | Undecided | 0 |
-| Settled by rules without a model call | 0 of 50 (no listed sender or keyword matched in this sample) |
+| Settled by rules without a model call | not applicable in this sample: no listed sender or keyword matched, so every email went to the model |
 | Result | **passes** |
 
 What I labelled alert: four emails from individual recruiters at staffing firms about specific roles, the email that carried this assignment, and seven Google security notices (a new sign-in, recovery-contact changes, an account linked to a third-party app). All twelve alerted. What I labelled ignore: Substack and company newsletters, LinkedIn, Indeed, ZipRecruiter, Dice and employer job-alert digests, Amazon and Coursera promotions, Handshake and Otter onboarding mail. 37 of 38 were ignored.
