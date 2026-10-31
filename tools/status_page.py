@@ -32,7 +32,7 @@ td { padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top } 
 .pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:600 }
 .alert { background:rgba(255,107,107,.15); color:var(--bad) } .ignore { background:rgba(61,220,151,.15); color:var(--ok) } .undecided { background:rgba(255,180,84,.15); color:var(--warn) }
 .by { color:var(--muted); font-size:12px } .mono { font-family:ui-monospace,Consolas,monospace; font-size:12px; white-space:pre-wrap; color:#c9cdd8 }
-.status { display:flex; gap:18px; flex-wrap:wrap; color:var(--muted) } .status b { color:var(--fg); font-weight:600 }
+.status { display:flex; gap:18px; flex-wrap:wrap; color:var(--muted) } .status b { color:var(--fg); font-weight:600 } #cd { color:var(--accent); font-variant-numeric:tabular-nums }
 .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:var(--ok) } .dot.off { background:var(--bad) }
 """
 
@@ -47,7 +47,7 @@ def pill(decision: str) -> str:
 
 def when(iso: str) -> str:
     try:
-        return datetime.fromisoformat(iso).astimezone().strftime("%H:%M")
+        return datetime.fromisoformat(iso).astimezone().strftime("%I:%M %p").lstrip("0")
     except Exception:
         return iso or ""
 
@@ -91,6 +91,7 @@ def render() -> str:
 <span><span class="dot {'' if alive else 'off'}"></span>{'Running' if alive else 'No recent check'}</span>
 <span>Last check <b>{when(last_check) if last_check else '—'}</b></span>
 <span>Next check <b>{when(next_check.isoformat()) if next_check else '—'}</b></span>
+<span>Countdown <b id="cd" data-next="{int(next_check.timestamp()) if next_check else 0}">—</b></span>
 <span>Interval <b>{S.check_interval_seconds // 60} min</b></span>
 <span>Alerts <b>{'muted until ' + when(mute_until) if muted else 'on'}</b></span>
 <span>Model <b>{esc(S.llm_model)}</b></span>
@@ -106,7 +107,14 @@ def render() -> str:
 <div class="card"><h2>Check runs</h2><table><tr><th>When</th><th>New emails</th><th>Alerts</th></tr>{rows_runs}</table></div>
 <div class="card"><h2>Rules file (rules.yaml, edit it in any editor)</h2><div class="mono">{esc(rules_text)}</div></div>
 <div class="card"><h2>Log tail (decisions.log)</h2><div class="mono">{esc(log_tail)}</div></div>
-</div></body></html>"""
+</div>
+<script>
+(function(){{var el=document.getElementById('cd');var t=parseInt(el.dataset.next||'0',10);
+function tick(){{if(!t){{el.textContent='—';return;}}var d=t-Math.floor(Date.now()/1000);
+if(d<=0){{el.textContent='checking now…';return;}}var m=Math.floor(d/60),s=d%60;el.textContent=m+':'+(s<10?'0':'')+s+' until next check';}}
+tick();setInterval(tick,1000);}})();
+</script>
+</body></html>"""
 
 
 class Handler(BaseHTTPRequestHandler):
