@@ -42,7 +42,12 @@ async def collect(n: int) -> None:
     with DATA.open("w", encoding="utf-8") as f:
         for r in rows:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
-    print(f"wrote {len(rows)} emails to {DATA}. Fill 'label' with alert or ignore, then run: score")
+    with LABELS.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["label", "id", "sender", "subject"])
+        for r in rows:
+            w.writerow(["", r["id"], r["sender"], r["subject"]])
+    print(f"wrote {len(rows)} emails to {DATA} and {LABELS}. Fill the label column (alert / ignore), then run: score")
 
 
 async def score() -> None:

@@ -5,6 +5,7 @@ One session per check. If the server crashes the next check starts a fresh one.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -19,7 +20,9 @@ ROOT = Path(__file__).resolve().parent.parent
 
 @asynccontextmanager
 async def gmail_session():
-    params = StdioServerParameters(command=sys.executable, args=["-m", "agent.gmail_mcp_server"], cwd=str(ROOT))
+    # The MCP SDK starts the child with a minimal environment; pass ours so .env-derived settings reach the server.
+    params = StdioServerParameters(command=sys.executable, args=["-m", "agent.gmail_mcp_server"], cwd=str(ROOT),
+                                   env=dict(os.environ))
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
