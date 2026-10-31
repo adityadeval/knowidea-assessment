@@ -91,6 +91,8 @@ Prompt injection: email text is data inside the prompt. The model has no tools a
 
 Stretch: `mute 2h` suppresses sending for a set time; decisions are still made and logged.
 
+Stretch beyond the document: a read-only status page, `python -m tools.status_page`, then http://localhost:8080. It renders the state file, the rules file and the log (status, last and next check, alerts of the last 24 hours, latest decisions with reasons, check runs). Standard library only; it never writes and never talks to Telegram, Gmail or the model, so it cannot interfere with the agent. The Telegram chat remains the interface; this page only watches.
+
 ### Test 11, measured on 50 real emails
 
 I pulled the latest 50 emails from my own inbox (a separate read-only token, `GMAIL_TOKEN_FILE`), labelled each one by hand against the guidance in `rules.yaml`, and ran the decision code on them with `python -m eval.run_eval score`. Nothing was sent; the data files are gitignored.
@@ -115,7 +117,7 @@ The one false alert is a recruiter mass-mail about a role I had no interest in; 
 - Rules before the model: deterministic, testable, free; the model only sees what the rules cannot settle.
 - Structured JSON output plus a second validation in code; "undecided" rather than a guess when either fails.
 - Alert recorded after the Telegram send succeeds. The crash window between the send and the write is the one case that can produce a duplicate; it is small and preferred over the opposite failure (recorded but never sent).
-- Cut: web UI, webhooks, cloud hosting, multiple users, HTML rendering, attachments, learning from feedback.
+- Cut: an editing UI, webhooks, cloud hosting, multiple users, HTML rendering, attachments, learning from feedback. (A read-only status page was added at the end; see above.)
 
 ## Limits
 
