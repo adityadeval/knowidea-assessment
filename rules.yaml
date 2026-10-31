@@ -1,0 +1,36 @@
+# Rules file: the user edits this. Lists are matched by code; the guidance paragraph is read by the model.
+# The agent reads it at every check, so edits take effect without a restart.
+
+# Emails from these addresses or domains are from "important senders".
+important_senders:
+  - adityadeval2024@gmail.com
+  - "@client-company.com"
+
+# An email from an important sender that contains one of these words (subject or body) is always an alert.
+alert_keywords:
+  - deadline
+  - urgent
+  - invoice
+  - contract
+
+# Emails from these addresses or domains are always ignored, no model call.
+ignore_senders:
+  - "@newsletter.example.com"
+  - noreply@
+
+# Emails whose subject contains one of these words are always ignored.
+ignore_keywords:
+  - unsubscribe
+  - newsletter
+  - "weekly digest"
+
+# One or two sentences the model reads before deciding the emails the rules above do not settle.
+attention_guidance: >
+  I am job hunting. Alert me when a person (a recruiter, a hiring manager, anyone) writes to me
+  about a role, and when an application I made moves forward, even if the sender is automated:
+  a reply to my application, an interview invitation, a next-stage notice, a request for a document
+  or a decision. Do not alert on job-alert digests and job-board recommendations (LinkedIn,
+  ZipRecruiter, Indeed and similar lists of roles I did not apply to).
+  Also alert me on money and security: a payment due or failed, an invoice, a bank or card notice,
+  or a security alert such as a new sign-in or a password change on any of my accounts.
+  Promotions, newsletters, social notifications and automated receipts can be ignored.

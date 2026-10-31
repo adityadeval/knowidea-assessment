@@ -109,6 +109,8 @@ async def score() -> None:
 
 
 def main() -> None:
+    # Windows consoles default to cp1252; subjects contain emoji.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if len(sys.argv) >= 2 and sys.argv[1] == "collect":
         n = int(sys.argv[2]) if len(sys.argv) > 2 else 50
         asyncio.run(collect(n))

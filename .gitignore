@@ -2,7 +2,6 @@
 .env
 credentials.json
 token*.json
-rules.yaml
 *.db
 *.db-journal
 *.log
