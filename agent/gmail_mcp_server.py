@@ -16,13 +16,13 @@ from pathlib import Path
 import requests
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 ROOT = Path(__file__).resolve().parent.parent
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 GMAIL = "https://gmail.googleapis.com/gmail/v1/users/me"
 
-mcp = FastMCP("gmail-readonly")
+mcp = MCPServer("gmail-readonly")
 
 
 def credentials() -> Credentials:

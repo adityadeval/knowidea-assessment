@@ -28,11 +28,11 @@ async def gmail_session():
 
 def _payload(result) -> object:
     """Unwrap a CallToolResult into the JSON the tool returned."""
-    if result.isError:
+    if result.is_error:
         text = "; ".join(getattr(c, "text", "") for c in result.content)
         raise RuntimeError(f"gmail tool error: {text}")
-    if getattr(result, "structuredContent", None):
-        sc = result.structuredContent
+    if result.structured_content:
+        sc = result.structured_content
         return sc.get("result", sc) if isinstance(sc, dict) else sc
     text = "".join(getattr(c, "text", "") for c in result.content)
     return json.loads(text) if text else None
