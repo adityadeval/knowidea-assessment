@@ -25,3 +25,4 @@ Thumbs.db
 # eval data: real emails, never committed
 eval/emails.jsonl
 eval/results.jsonl
+eval/labels.csv

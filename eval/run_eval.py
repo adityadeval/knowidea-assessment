@@ -3,7 +3,7 @@
 Two steps:
   python -m eval.run_eval collect 50     # read the latest 50 inbox emails through the MCP server -> eval/emails.jsonl
                                          # set GMAIL_TOKEN_FILE=token-other.json to read a different mailbox
-  (the user fills "label" with alert or ignore in that file)
+  (the user fills the label column in eval/labels.csv with alert or ignore)
   python -m eval.run_eval score          # decide each one (rules first, model second), print the confusion matrix
 
 Targets from the document: at least 90% of the emails labelled alert cause an alert; at most 5 of 50 cause a false alert.
@@ -12,6 +12,7 @@ Nothing is sent to Telegram and nothing is written to the state file: this is a 
 from __future__ import annotations
 
 import asyncio
+import csv
 import json
 import sys
 import time
@@ -24,6 +25,7 @@ from agent.rules import Email, decide_by_rules, load_rules
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE / "emails.jsonl"
+LABELS = HERE / "labels.csv"
 
 
 async def collect(n: int) -> None:
@@ -48,6 +50,11 @@ async def score() -> None:
     rules = load_rules(s.rules_path)
     model = ModelDecider(s.anthropic_api_key, s.llm_model)
     rows = [json.loads(line) for line in DATA.read_text(encoding="utf-8").splitlines() if line.strip()]
+    if LABELS.exists():
+        with LABELS.open(encoding="utf-8", newline="") as f:
+            labels = {r["id"]: r["label"].strip().lower() for r in csv.DictReader(f)}
+        for r in rows:
+            r["label"] = labels.get(r["id"], r.get("label", ""))
     rows = [r for r in rows if r.get("label") in ("alert", "ignore")]
     if not rows:
         raise SystemExit("no labelled rows in eval/emails.jsonl")
