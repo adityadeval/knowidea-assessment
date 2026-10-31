@@ -1,0 +1,23 @@
+# secrets and local state: never committed
+.env
+credentials.json
+token.json
+rules.yaml
+*.db
+*.db-journal
+*.log
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# editor and process files
+CLAUDE.md
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

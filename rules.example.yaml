@@ -1,0 +1,31 @@
+# Rules file: the user edits this. Copy to rules.yaml (gitignored) and fill in real addresses.
+# The agent reads it at every check, so edits take effect without a restart.
+
+# Emails from these addresses or domains are from "important senders".
+important_senders:
+  - boss@example.com
+  - "@client-company.com"
+
+# An email from an important sender that contains one of these words (subject or body) is always an alert.
+alert_keywords:
+  - deadline
+  - urgent
+  - invoice
+  - contract
+
+# Emails from these addresses or domains are always ignored, no model call.
+ignore_senders:
+  - "@newsletter.example.com"
+  - noreply@
+
+# Emails whose subject contains one of these words are always ignored.
+ignore_keywords:
+  - unsubscribe
+  - newsletter
+  - "weekly digest"
+
+# One or two sentences the model reads before deciding the emails the rules above do not settle.
+attention_guidance: >
+  I run a small software team. Alert me on anything that asks me for a decision, a reply by a date,
+  money, a contract, or a problem with a customer. Ignore marketing, promotions, social notifications
+  and automated receipts.
