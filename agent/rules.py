@@ -3,8 +3,12 @@
 Order of the checks in decide_by_rules (first match wins):
   1. sender in ignore_senders                      -> ignore
   2. important sender AND an alert keyword          -> alert
-  3. newsletter headers or an ignore keyword        -> ignore
+  3. an ignore keyword in the subject               -> ignore
   4. nothing matched                                -> None (the model decides)
+
+The bulk-mail headers (List-Unsubscribe, Precedence: bulk) are NOT a rule. They were, until the 50-email eval showed
+that recruiters' mass-mail tools and account notices carry them too, which silenced four emails the user wanted.
+They are passed to the model as a hint instead (see decide.build_prompt).
 """
 from __future__ import annotations
 
@@ -92,9 +96,6 @@ def decide_by_rules(email: Email, rules: Rules) -> Decision | None:
         word = keyword_in(rules.alert_keywords, email.subject, email.body)
         if word:
             return Decision("alert", f"From an important sender ({important}) and mentions '{word}'.", "rule")
-
-    if email.list_unsubscribe or email.precedence_bulk:
-        return Decision("ignore", "Bulk mail: it carries newsletter headers (List-Unsubscribe or Precedence: bulk).", "rule")
 
     word = keyword_in(rules.ignore_keywords, email.subject)
     if word:

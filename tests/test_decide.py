@@ -36,4 +36,7 @@ def test_prompt_bounds_the_body_and_wraps_it_as_data():
     email = Email(id="1", sender="a@b.com", subject="s", body="x" * (MAX_BODY_CHARS + 500))
     p = build_prompt(email, Rules())
     assert "[truncated]" in p and "<email>" in p and "</email>" in p
+    assert "Bulk-mail headers present: no" in p
+    hinted = build_prompt(Email(id="2", sender="a@b.com", subject="s", body="", list_unsubscribe=True), Rules())
+    assert "Bulk-mail headers present: yes" in hinted
     assert len(p) < MAX_BODY_CHARS + 1000

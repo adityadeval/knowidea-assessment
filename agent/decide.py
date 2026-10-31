@@ -56,7 +56,9 @@ def build_prompt(email: Email, rules: Rules) -> str:
         "<email>\n"
         f"From: {email.sender}\n"
         f"Subject: {email.subject}\n"
-        f"Received: {email.received_at}\n\n"
+        f"Received: {email.received_at}\n"
+        f"Bulk-mail headers present: {'yes' if (email.list_unsubscribe or email.precedence_bulk) else 'no'}"
+        " (a hint only: newsletters have them, but so do some recruiters' tools and account notices)\n\n"
         f"{body}\n"
         "</email>"
     )

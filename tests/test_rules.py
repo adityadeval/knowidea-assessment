@@ -40,11 +40,10 @@ def test_important_sender_without_keyword_goes_to_the_model():
     assert decide_by_rules(mail(sender="boss@acme.com", subject="Lunch?"), RULES) is None
 
 
-def test_newsletter_headers_are_ignored_without_a_model_call():
-    d = decide_by_rules(mail(subject="Big sale", list_unsubscribe=True), RULES)
-    assert d is not None and d.decision == "ignore" and d.by == "rule"
-    d = decide_by_rules(mail(subject="Big sale", precedence_bulk=True), RULES)
-    assert d is not None and d.decision == "ignore"
+def test_newsletter_headers_alone_do_not_decide():
+    # Recruiter mass-mail tools and account notices carry these headers too; the model gets them as a hint.
+    assert decide_by_rules(mail(subject="Big sale", list_unsubscribe=True), RULES) is None
+    assert decide_by_rules(mail(subject="Big sale", precedence_bulk=True), RULES) is None
 
 
 def test_ignore_sender_wins_even_with_alert_keyword():
