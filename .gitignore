@@ -21,3 +21,7 @@ CLAUDE.md
 *.swp
 .DS_Store
 Thumbs.db
+
+# eval data: real emails, never committed
+eval/emails.jsonl
+eval/results.jsonl
