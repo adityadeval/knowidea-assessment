@@ -27,7 +27,7 @@ python -m agent.main
 
 Google side, once: a Cloud project with the Gmail API enabled, an OAuth consent screen in Testing with your address as a test user, and an OAuth client of type Desktop app downloaded as `credentials.json` into this folder. `credentials.json`, `token*.json`, `.env`, `state.db`, `decisions.log` and the eval data are gitignored. `rules.yaml` is committed on purpose: the guidance paragraph is the part of this system the user owns.
 
-Tests: `pytest` (22 tests, no network).
+Tests: `python -m pytest -q` (22 tests, no network).
 
 ## Architecture
 
