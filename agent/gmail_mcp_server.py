@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 from pathlib import Path
 
 import requests
@@ -30,7 +31,8 @@ mcp = MCPServer("gmail-readonly")
 
 
 def credentials() -> Credentials:
-    token_path = ROOT / "token.json"
+    # GMAIL_TOKEN_FILE lets the eval script read a different mailbox without touching the agent's token.
+    token_path = ROOT / os.environ.get("GMAIL_TOKEN_FILE", "token.json")
     if not token_path.exists():
         raise RuntimeError("token.json missing: run `python -m agent.auth_gmail` first")
     creds = Credentials.from_authorized_user_file(str(token_path), SCOPES)

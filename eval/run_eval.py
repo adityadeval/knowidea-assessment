@@ -2,6 +2,7 @@
 
 Two steps:
   python -m eval.run_eval collect 50     # read the latest 50 inbox emails through the MCP server -> eval/emails.jsonl
+                                         # set GMAIL_TOKEN_FILE=token-other.json to read a different mailbox
   (the user fills "label" with alert or ignore in that file)
   python -m eval.run_eval score          # decide each one (rules first, model second), print the confusion matrix
 
