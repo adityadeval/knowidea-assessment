@@ -1,19 +1,22 @@
-"""A read-only status page for the running agent. Stretch beyond the document (version 1 is Telegram only).
+"""A local status page for the running agent. Stretch beyond the document (version 1 is Telegram only).
 
     python -m tools.status_page          # then open http://localhost:8080
 
 It reads state.db, decisions.log and rules.yaml and renders one HTML page that refreshes itself every 30 seconds.
-It never writes anything and never talks to Telegram, Gmail or the model, so it cannot interfere with the agent.
-Standard library only.
+The only thing it can write is rules.yaml (the Save button), after checking that the text parses as a rules file;
+the agent re-reads that file at every check, so a saved edit applies at the next check without a restart.
+It never touches the state file, the log, Telegram, Gmail or the model. Standard library only, bound to localhost.
 """
 from __future__ import annotations
 
 import html
 import sqlite3
+import urllib.parse
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from agent.config import settings
+from agent.rules import load_rules
 
 S = settings()
 
@@ -33,6 +36,9 @@ td { padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top } 
 .alert { background:rgba(255,107,107,.15); color:var(--bad) } .ignore { background:rgba(61,220,151,.15); color:var(--ok) } .undecided { background:rgba(255,180,84,.15); color:var(--warn) }
 .by { color:var(--muted); font-size:12px } .mono { font-family:ui-monospace,Consolas,monospace; font-size:12px; white-space:pre-wrap; color:#c9cdd8 }
 .status { display:flex; gap:18px; flex-wrap:wrap; color:var(--muted) } .status b { color:var(--fg); font-weight:600 } #cd { color:var(--accent); font-variant-numeric:tabular-nums }
+textarea { width:100%; min-height:260px; background:#0b0d12; color:#c9cdd8; border:1px solid var(--line); border-radius:8px; padding:10px; font:12px/1.5 ui-monospace,Consolas,monospace }
+button { margin-top:8px; background:var(--accent); color:#0b0d12; border:0; border-radius:8px; padding:8px 14px; font-weight:600; cursor:pointer }
+.note { color:var(--muted); font-size:12px; margin-top:6px } .err { color:var(--bad); font-size:13px; margin-top:6px }
 .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; background:var(--ok) } .dot.off { background:var(--bad) }
 """
 
@@ -52,7 +58,7 @@ def when(iso: str) -> str:
         return iso or ""
 
 
-def render() -> str:
+def render(error: str = "", saved: bool = False) -> str:
     conn = sqlite3.connect(f"file:{S.db_path}?mode=ro", uri=True) if S.db_path.exists() else None
     now = datetime.now(timezone.utc)
     q = (lambda sql, *a: conn.execute(sql, a).fetchall()) if conn else (lambda sql, *a: [])
@@ -86,7 +92,7 @@ def render() -> str:
 
     return f"""<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="30">
 <title>Chief of Staff Agent</title><style>{CSS}</style></head><body><div class="wrap">
-<h1>Chief of Staff Agent</h1><div class="sub">Read-only view of the running agent. Refreshes every 30 s. Version 1 interface is the Telegram chat; this page only watches.</div>
+<h1>Chief of Staff Agent</h1><div class="sub">A window on the running agent. Refreshes every 30 s. Version 1 interface is the Telegram chat; this page watches, and lets you edit the rules file.</div>
 <div class="card"><div class="status">
 <span><span class="dot {'' if alive else 'off'}"></span>{'Running' if alive else 'No recent check'}</span>
 <span>Last check <b>{when(last_check) if last_check else '—'}</b></span>
@@ -105,7 +111,12 @@ def render() -> str:
 <div class="card"><h2>Alerts, last 24 hours</h2><table><tr><th>When</th><th>From</th><th>Subject</th><th>Why</th></tr>{rows_alerts}</table></div>
 <div class="card"><h2>Latest decisions</h2><table><tr><th>When</th><th>Decision</th><th>By</th><th>From</th><th>Subject</th><th>Reason</th></tr>{rows_dec}</table></div>
 <div class="card"><h2>Check runs</h2><table><tr><th>When</th><th>New emails</th><th>Alerts</th></tr>{rows_runs}</table></div>
-<div class="card"><h2>Rules file (rules.yaml, edit it in any editor)</h2><div class="mono">{esc(rules_text)}</div></div>
+<div class="card"><h2>Rules file (rules.yaml)</h2>
+<form method="post" action="/rules"><textarea name="rules" spellcheck="false">{esc(rules_text)}</textarea>
+<div><button type="submit">Save rules</button></div>
+<div class="note">Saved rules apply at the next check; the agent re-reads this file every run. Lists are matched by code; the guidance paragraph is read by the model.</div>
+{('<div class="err">Not saved: ' + esc(error) + '</div>') if error else ''}{('<div class="note" style="color:var(--ok)">Saved.</div>') if saved else ''}
+</form></div>
 <div class="card"><h2>Log tail (decisions.log)</h2><div class="mono">{esc(log_tail)}</div></div>
 </div>
 <script>
@@ -126,12 +137,33 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def do_POST(self):
+        if self.path != "/rules":
+            self.send_response(404); self.end_headers(); return
+        length = int(self.headers.get("Content-Length", "0"))
+        form = urllib.parse.parse_qs(self.rfile.read(length).decode("utf-8"))
+        text = (form.get("rules") or [""])[0].replace("\r\n", "\n")
+        error = ""
+        try:
+            tmp = S.rules_path.with_suffix(".tmp")
+            tmp.write_text(text, encoding="utf-8")
+            load_rules(tmp)                       # must parse as a rules file before it replaces the real one
+            tmp.replace(S.rules_path)
+        except Exception as e:                    # bad YAML or wrong shape: keep the old file, show the error
+            error = f"{type(e).__name__}: {e}"
+        body = render(error=error, saved=not error).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def log_message(self, *args):  # keep the agent's terminal quiet; this page has its own
         pass
 
 
 def main(port: int = 8080) -> None:
-    print(f"status page on http://localhost:{port}  (read-only; Ctrl+C to stop)")
+    print(f"status page on http://localhost:{port}  (Ctrl+C to stop)")
     HTTPServer(("127.0.0.1", port), Handler).serve_forever()
 
 

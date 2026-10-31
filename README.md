@@ -91,7 +91,7 @@ Prompt injection: email text is data inside the prompt. The model has no tools a
 
 Stretch: `mute 2h` suppresses sending for a set time; decisions are still made and logged.
 
-Stretch beyond the document: a read-only status page, `python -m tools.status_page`, then http://localhost:8080. It renders the state file, the rules file and the log (status, last and next check, alerts of the last 24 hours, latest decisions with reasons, check runs). Standard library only; it never writes and never talks to Telegram, Gmail or the model, so it cannot interfere with the agent. The Telegram chat remains the interface; this page only watches.
+Stretch beyond the document: a local status page, `python -m tools.status_page`, then http://localhost:8080. It renders the state file, the rules file and the log (status, last and next check with a countdown, alerts of the last 24 hours, latest decisions with reasons, check runs), and it lets the user edit and save the rules file; a saved edit is validated as a rules file first and applies at the next check, because the agent re-reads the file every run. Standard library only, bound to localhost; it never touches the state file, the log, Telegram, Gmail or the model. The Telegram chat remains the interface.
 
 ### Test 11, measured on 50 real emails
 
@@ -117,7 +117,7 @@ The one false alert is a recruiter mass-mail about a role I had no interest in; 
 - Rules before the model: deterministic, testable, free; the model only sees what the rules cannot settle.
 - Structured JSON output plus a second validation in code; "undecided" rather than a guess when either fails.
 - Alert recorded after the Telegram send succeeds. The crash window between the send and the write is the one case that can produce a duplicate; it is small and preferred over the opposite failure (recorded but never sent).
-- Cut: an editing UI, webhooks, cloud hosting, multiple users, HTML rendering, attachments, learning from feedback. (A read-only status page was added at the end; see above.)
+- Cut: an editing UI, webhooks, cloud hosting, multiple users, HTML rendering, attachments, learning from feedback. (A local status page with an editable rules file was added at the end; see above.)
 
 ## Limits
 
