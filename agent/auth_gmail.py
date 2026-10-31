@@ -10,11 +10,14 @@ from pathlib import Path
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 
+from agent.config import load_dotenv
+
 ROOT = Path(__file__).resolve().parent.parent
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 
 
 def main() -> None:
+    load_dotenv()
     creds_path = ROOT / "credentials.json"
     if not creds_path.exists():
         raise SystemExit("credentials.json not found in the repo root (download it from Google Cloud, OAuth client, Desktop app)")

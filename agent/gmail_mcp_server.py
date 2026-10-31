@@ -18,6 +18,10 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from mcp.server.mcpserver import MCPServer
 
+from agent.config import load_dotenv
+
+load_dotenv()
+
 ROOT = Path(__file__).resolve().parent.parent
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 GMAIL = "https://gmail.googleapis.com/gmail/v1/users/me"
