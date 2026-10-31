@@ -63,7 +63,7 @@ def require(s: Settings) -> list[str]:
     if not s.anthropic_api_key:
         missing.append("ANTHROPIC_API_KEY")
     if not s.rules_path.exists():
-        missing.append(f"{s.rules_path.name} (copy rules.example.yaml)")
+        missing.append(f"{s.rules_path.name} (it is in the repo; restore it from git)")
     if not s.token_path.exists():
         missing.append("token.json (run: python -m agent.auth_gmail)")
     return missing
