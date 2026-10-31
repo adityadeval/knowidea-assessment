@@ -13,7 +13,7 @@ import html
 import sqlite3
 import urllib.parse
 from datetime import datetime, timedelta, timezone
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from agent.config import settings
 from agent.rules import load_rules
@@ -129,6 +129,7 @@ tick();setInterval(tick,1000);}})();
 
 
 class Handler(BaseHTTPRequestHandler):
+    timeout = 10  # an idle browser connection must not block the server
     def do_GET(self):
         body = render().encode("utf-8")
         self.send_response(200)
@@ -163,8 +164,11 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main(port: int = 8080) -> None:
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1].isdigit():
+        port = int(sys.argv[1])
     print(f"status page on http://localhost:{port}  (Ctrl+C to stop)")
-    HTTPServer(("127.0.0.1", port), Handler).serve_forever()
+    ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()
 
 
 if __name__ == "__main__":
